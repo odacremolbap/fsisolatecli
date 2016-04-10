@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"syscall"
 	"time"
 
 	"github.com/odacremolbap/fsisolate"
@@ -97,12 +98,33 @@ func main() {
 				} else {
 					printMetaInfo(" PID: %d EXITED: %t", pid, exited)
 				}
-			case 'q', 'Q':
-				err = chrootProc.SendSignal(os.Interrupt)
+			case 'h', 'H':
+				err = chrootProc.SendSignal(syscall.SIGHUP)
 				if err != nil {
 					fmt.Println(err)
 					continue
 				}
+
+			case 'i', 'I':
+				err = chrootProc.SendSignal(syscall.SIGINT)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+			case 'k', 'K':
+				err = chrootProc.SendSignal(syscall.SIGKILL)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+
+			case 'u', 'U':
+				err = chrootProc.SendSignal(syscall.SIGUSR1)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+
 			}
 
 		}
@@ -116,6 +138,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// TODO, create channel and wait till key
 	time.Sleep(5 * time.Second)
 
 }
