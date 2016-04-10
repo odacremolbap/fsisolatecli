@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"github.com/odacremolbap/fsisolate"
 	log "github.com/sirupsen/logrus"
@@ -18,7 +20,7 @@ func init() {
 	flag.BoolVarP(&debug, "debug", "d", false, "enable debug messages")
 	flag.StringVarP(&root, "root", "r", "", "directory to place the new root")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: %s [OPTIONS] IMAGE COMMAND [command args ...]\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage: isocli [OPTIONS] IMAGE COMMAND [command args ...]\n")
 		fmt.Fprintf(os.Stderr, "\nA naive chroot wrapper\n")
 		fmt.Fprintf(os.Stderr, "\nOptions:\n")
 		flag.PrintDefaults()
@@ -39,10 +41,9 @@ func main() {
 		flag.Usage()
 		os.Exit(2)
 	}
-
 	var err error
 	image := flag.Arg(0)
-	exec := flag.Arg(1)
+	command := flag.Arg(1)
 	args := flag.Args()[2:]
 
 	// if no root is informed, use a generated temp dir
@@ -55,13 +56,71 @@ func main() {
 	}
 
 	// prepare process
-	chrootProc, err := fsisolate.PrepareChrootedProcess(image, root, exec, args)
+	chrootProc, err := fsisolate.PrepareChrootedProcess(image, root)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err = chrootProc.SandboxExec(exec, args...); err != nil {
+	go func() {
+		for {
+
+			reader := bufio.NewReader(os.Stdin)
+			text, err := reader.ReadByte()
+
+			if err != nil {
+				continue
+			}
+
+			switch text {
+			case 's', 'S':
+				// get status
+				pid, err := chrootProc.GetPID()
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+
+				exited, err := chrootProc.GetExited()
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+
+				if exited {
+					exitStatus, err := chrootProc.GetExitStatus()
+					if err != nil {
+						fmt.Println(err)
+						continue
+					}
+					printMetaInfo(" PID: %d EXITED: %t EXIT-STATUS: %d", pid, exited, exitStatus)
+
+				} else {
+					printMetaInfo(" PID: %d EXITED: %t", pid, exited)
+				}
+			case 'q', 'Q':
+				err = chrootProc.SendSignal(os.Interrupt)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+			}
+
+		}
+	}()
+
+	if err = chrootProc.SandboxExec(command, args...); err != nil {
 		log.Fatal(err)
 	}
 
+	if err = chrootProc.Wait(); err != nil {
+		log.Fatal(err)
+	}
+
+	time.Sleep(5 * time.Second)
+
+}
+
+func printMetaInfo(message string, args ...interface{}) {
+	message = "[ISOCLI]" + message + "\n"
+	fmt.Printf(message, args...)
 }
