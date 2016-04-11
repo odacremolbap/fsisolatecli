@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"syscall"
 	"time"
 
 	"github.com/odacremolbap/fsisolate"
@@ -15,11 +13,13 @@ import (
 
 var debug bool
 var root string
+var delayAfterExited int64
 
 func init() {
 
 	flag.BoolVarP(&debug, "debug", "d", false, "enable debug messages")
 	flag.StringVarP(&root, "root", "r", "", "directory to place the new root")
+	flag.Int64VarP(&delayAfterExited, "postdelay", "t", 0, "ammount of time in seconds before exiting")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: isocli [OPTIONS] IMAGE COMMAND [command args ...]\n")
 		fmt.Fprintf(os.Stderr, "\nA naive chroot wrapper\n")
@@ -48,6 +48,7 @@ func main() {
 	args := flag.Args()[2:]
 
 	// if no root is informed, use a generated temp dir
+	// TODO if image parameter is directory, this tempdir is not going to be used. Check that
 	if root == "" {
 		root, err = ioutil.TempDir("", "isocli")
 		if err != nil {
@@ -62,84 +63,23 @@ func main() {
 		log.Fatal(err)
 	}
 
-	go func() {
-		for {
+	// launch commands and signals processor
+	go inputProc(chrootProc)
 
-			reader := bufio.NewReader(os.Stdin)
-			text, err := reader.ReadByte()
-
-			if err != nil {
-				continue
-			}
-
-			switch text {
-			case 's', 'S':
-				// get status
-				pid, err := chrootProc.GetPID()
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-
-				exited, err := chrootProc.GetExited()
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-
-				if exited {
-					exitStatus, err := chrootProc.GetExitStatus()
-					if err != nil {
-						fmt.Println(err)
-						continue
-					}
-					printMetaInfo(" PID: %d EXITED: %t EXIT-STATUS: %d", pid, exited, exitStatus)
-
-				} else {
-					printMetaInfo(" PID: %d EXITED: %t", pid, exited)
-				}
-			case 'h', 'H':
-				err = chrootProc.SendSignal(syscall.SIGHUP)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-
-			case 'i', 'I':
-				err = chrootProc.SendSignal(syscall.SIGINT)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-			case 'k', 'K':
-				err = chrootProc.SendSignal(syscall.SIGKILL)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-
-			case 'u', 'U':
-				err = chrootProc.SendSignal(syscall.SIGUSR1)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-
-			}
-
-		}
-	}()
-
+	// execute process
 	if err = chrootProc.SandboxExec(command, args...); err != nil {
 		log.Fatal(err)
 	}
 
+	// wait for the process to finish
 	if err = chrootProc.Wait(); err != nil {
 		log.Fatal(err)
 	}
 
-	// TODO, create channel and wait till key
-	time.Sleep(5 * time.Second)
+	// delay after exited
+	if delayAfterExited > 0 {
+		time.Sleep(time.Duration(delayAfterExited) * time.Second)
+	}
 
 }
 

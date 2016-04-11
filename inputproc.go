@@ -1,0 +1,79 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"syscall"
+
+	"github.com/odacremolbap/fsisolate/runtime"
+)
+
+func inputProc(chrootProc *runtime.ChrootedProcess) {
+	for {
+
+		// TODO capture like getch
+		reader := bufio.NewReader(os.Stdin)
+		text, err := reader.ReadByte()
+
+		if err != nil {
+			continue
+		}
+
+		switch text {
+		case 's', 'S':
+			// get status
+			pid, e := chrootProc.GetPID()
+			if err != nil {
+				fmt.Println(e)
+				continue
+			}
+
+			exited, e := chrootProc.GetExited()
+			if err != nil {
+				fmt.Println(e)
+				continue
+			}
+
+			if exited {
+				exitStatus, e := chrootProc.GetExitStatus()
+				if err != nil {
+					fmt.Println(e)
+					continue
+				}
+				printMetaInfo(" PID: %d EXITED: %t EXIT-STATUS: %d", pid, exited, exitStatus)
+
+			} else {
+				printMetaInfo(" PID: %d EXITED: %t", pid, exited)
+			}
+		case 'h', 'H':
+			err = chrootProc.SendSignal(syscall.SIGHUP)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+		case 'i', 'I':
+			err = chrootProc.SendSignal(syscall.SIGINT)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+		case 'k', 'K':
+			err = chrootProc.SendSignal(syscall.SIGKILL)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+		case 'u', 'U':
+			err = chrootProc.SendSignal(syscall.SIGUSR1)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+		}
+
+	}
+}
