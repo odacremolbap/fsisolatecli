@@ -42,6 +42,7 @@ func main() {
 		flag.Usage()
 		os.Exit(2)
 	}
+
 	var err error
 	image := flag.Arg(0)
 	command := flag.Arg(1)
@@ -58,7 +59,7 @@ func main() {
 	}
 
 	// prepare process
-	chrootProc, err := fsisolate.PrepareChrootedProcess(image, root)
+	chrootProc, err := fsisolate.Prepare(image, root)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,7 +68,7 @@ func main() {
 	go inputProc(chrootProc)
 
 	// execute process
-	if err = chrootProc.SandboxExec(command, args...); err != nil {
+	if err = chrootProc.Exec(command, args...); err != nil {
 		log.Fatal(err)
 	}
 

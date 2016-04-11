@@ -29,22 +29,18 @@ func inputProc(chrootProc *runtime.ChrootedProcess) {
 				continue
 			}
 
-			exited, e := chrootProc.GetExited()
-			if err != nil {
-				fmt.Println(e)
-				continue
-			}
+			state := chrootProc.GetState()
 
-			if exited {
+			if state == runtime.Finished {
 				exitStatus, e := chrootProc.GetExitStatus()
 				if err != nil {
 					fmt.Println(e)
 					continue
 				}
-				printMetaInfo(" PID: %d EXITED: %t EXIT-STATUS: %d", pid, exited, exitStatus)
+				printMetaInfo(" PID: %d STATE: %s EXIT-STATUS: %d", pid, state, exitStatus)
 
 			} else {
-				printMetaInfo(" PID: %d EXITED: %t", pid, exited)
+				printMetaInfo(" PID: %d STATE: %s", pid, state)
 			}
 		case 'h', 'H':
 			err = chrootProc.SendSignal(syscall.SIGHUP)
