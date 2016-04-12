@@ -40,7 +40,7 @@ Once `fsisolatecli` is running you can get chrooted process infor by writing:
 - <kbd>k</kbd>+<kbd>Enter</kbd> to send SIGKILL
 - <kbd>u</kbd>+<kbd>Enter</kbd> to send SIGUSR1
 
-(Sorry for the need to press <kbd>Enter</kbd>, I'm due to try [termbox](https://github.com/nsf/termbox-go)
+(Sorry for the need to press <kbd>Enter</kbd>, I'm due to try [termbox](https://github.com/nsf/termbox-go))
 
 # Tests
 
