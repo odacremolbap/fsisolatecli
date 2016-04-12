@@ -54,26 +54,78 @@ The [loop](https://github.com/odacremolbap/loop) application executes a 1 second
 
 This command will execute the loop app for 10 iterations, and will exit with code 0
 It will also wait 5 seconds before executing the process, and 5 after the process has finished
-`sudo ./fsisolatecli -b 5 -a 5 test/simple /loop-linux -- -i 10 -e 0`
+```
+sudo ./fsisolatecli -b 5 -a 5 test/simple /loop-linux -- -i 10 -e 0
+```
 
 To test a failing process you can change the exit code to a non 0 value
-`sudo ./fsisolatecli -b 5 -a 5 test/simple /loop-linux -- -i 10 -e 2`
+```
+sudo ./fsisolatecli -b 5 -a 5 test/simple /loop-linux -- -i 10 -e 2
+```
 
 You can ask for status or send signals anytime. If you try to communicate with the process before it's running of after it has finished (use `-a`and `-b` delays), you should receive a message indicating that the process isn't running.
 
 You can use a tarball file instead of a directory
-`sudo ./fsisolatecli -b 5 -a 5 test/simple.tar /loop-linux -- -i 10 -e 2`
+```
+sudo ./fsisolatecli -b 5 -a 5 test/simple.tar /loop-linux -- -i 10 -e 2
+```
 
 Or a URL
-`sudo ./fsisolatecli -b 5 -a 5 https://raw.githubusercontent.com/odacremolbap/fsisolatecli/master/test/simple.tar /loop-linux -- -i 10 -e 2`
+```
+sudo ./fsisolatecli -b 5 -a 5 https://raw.githubusercontent.com/odacremolbap/fsisolatecli/master/test/simple.tar /loop-linux -- -i 10 -e 2
+```
 
 ## Darwin
 
 Darwin tests can also use `test\simple`, choosing the darwin compiled `loop` application.
+```
+sudo ./fsisolatecli -b 5 -a 5 test/simple /loop-darwin -- -i 10 -e 0
+```
+Directory with exit status 2, and no delay after executing the process
+```
+sudo ./fsisolatecli -b 5 test/simple /loop-darwin -- -i 5 -e 2
+```
+Tarball  with exit status 2
+```
+sudo ./fsisolatecli -b 5 -a 5 test/simple.tar /loop-darwin -- -i 10 -e 2
+```
+URL with exit status 0
+```
+sudo ./fsisolatecli -b 5 -a 5 https://raw.githubusercontent.com/odacremolbap/fsisolatecli/master/test/simple.tar /loop-darwin -- -i 10 -e 0
+```
 
-`sudo ./fsisolatecli -b 5 -a 5 test/simple /loop-darwin -- -i 10 -e 0`
-
-`sudo ./fsisolatecli -b 5 -a 5 test/simple /loop-darwin -- -i 10 -e 2`
-
-`sudo ./fsisolatecli -b 5 -a 5 test/simple.tar /loop-darwin -- -i 10 -e 2`
 ...
+
+
+This is an output example
+
+```
+$ sudo ./fsisolatecli -b 5 -a 5 https://raw.githubusercontent.com/odacremolbap/fsisolatecli/master/test/simple.tar /loop-darwin -- -i 10 -e 2
+
+[ISOCLI]Preparing the image, this might take a while ...
+[ISOCLI]When running the process enter:
+[ISOCLI]	's + enter' to get process state
+[ISOCLI]	'i + enter' to send SIGINT
+[ISOCLI]	'h + enter' to send SIGHUP
+[ISOCLI]	'k + enter' to send SIGKILL
+[ISOCLI]	'u + enter' to send SIGUSR1
+s
+[ISOCLI] PID: 0 STATE: not started
+s
+[ISOCLI] PID: 0 STATE: not started
+[CHROOT]Iteration #1
+[CHROOT]Iteration #2
+[CHROOT]Iteration #3
+s
+[ISOCLI] PID: 23852 STATE: running
+[CHROOT]Iteration #4
+[CHROOT]Iteration #5
+[CHROOT]Iteration #6
+u
+[CHROOT]>>>>>>>>> Signal received: user defined signal 1
+[CHROOT]Iteration #7
+[CHROOT]Iteration #8
+[CHROOT]Iteration #9
+k
+[ISOCLI]Process finished with error: Error waiting process: signal: killed
+```
