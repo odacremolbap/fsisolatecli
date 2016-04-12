@@ -44,11 +44,11 @@ Once `fsisolatecli` is running you can get chrooted process infor by writing:
 
 # Tests
 
-`test` folder contains a `simple`subfolder containing a simple application with no dependencies that iterates a number of times an listens to OS signals.
+`test` folder contains a `simple`subfolder containing a simple `loop-darwin` and `loop-linux` application that iterates a number of times an listens to OS signals.
 
 You can also in that directory find the tarball file `simple.tar`.
 
-The `loop-<OS>` application executes a 1 second sleep iteration a number of times determined by flag `-i`, and in the end exits with status determined by `-e`
+The [loop](https://github.com/odacremolbap/loop) application executes a 1 second sleep iteration a number of times determined by flag `-i`, and in the end exits with status determined by `-e`
 
 ## Linux
 
