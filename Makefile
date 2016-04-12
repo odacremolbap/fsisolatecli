@@ -9,11 +9,11 @@ TARGEOS = darwin linux
 .PHONY: build clean release
 
 build: $(SOURCES)
-	CGO_ENABLED=0 go build -o ${BINARY} $(SOURCES)
+	go build -o ${BINARY} $(SOURCES)
 
 define build
 	mkdir -p ${RELEASE_DIR}/$(1);
-	GOOS=$(1) CGO_ENABLED=0 go build -o ${RELEASE_DIR}/$(1)/${BINARY} $(SOURCES)
+	GOOS=$(1) go build -o ${RELEASE_DIR}/$(1)/${BINARY} $(SOURCES)
 endef
 
 release: $(SOURCES)
