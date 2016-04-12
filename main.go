@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/coreos/fleet/log"
 	"github.com/odacremolbap/fsisolate"
-	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
 )
 
@@ -18,10 +18,9 @@ var afterDelay int64
 
 func init() {
 
-	flag.BoolVarP(&debug, "debug", "d", false, "enable debug messages")
 	flag.StringVarP(&root, "root", "r", "", "directory to place the new root")
-	flag.Int64VarP(&beforeDelay, "beforedelay", "b", 2, "ammount of time in seconds before executing process")
-	flag.Int64VarP(&afterDelay, "afterdelay", "a", 0, "ammount of time in seconds after finishing process")
+	flag.Int64VarP(&beforeDelay, "beforedelay", "b", 2, "time to wait in seconds before executing process")
+	flag.Int64VarP(&afterDelay, "afterdelay", "a", 0, "time to wait seconds after finishing process")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: isocli [OPTIONS] IMAGE COMMAND [command args ...]\n")
 		fmt.Fprintf(os.Stderr, "\nA naive chroot wrapper\n")
@@ -32,9 +31,6 @@ func init() {
 
 	flag.Parse()
 
-	if debug {
-		log.SetLevel(log.DebugLevel)
-	}
 }
 
 func main() {
@@ -89,7 +85,7 @@ func main() {
 	// wait for the process to finish
 	if err = chrootProc.Wait(); err != nil {
 		// this error is related to the chrooted process
-		log.Error(err)
+		printMetaInfo("Process finished with error: %s", err.Error())
 	}
 
 	// delay after exited
