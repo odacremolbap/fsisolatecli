@@ -13,13 +13,15 @@ import (
 
 var debug bool
 var root string
-var delayAfterExited int64
+var beforeDelay int64
+var afterDelay int64
 
 func init() {
 
 	flag.BoolVarP(&debug, "debug", "d", false, "enable debug messages")
 	flag.StringVarP(&root, "root", "r", "", "directory to place the new root")
-	flag.Int64VarP(&delayAfterExited, "postdelay", "t", 0, "ammount of time in seconds before exiting")
+	flag.Int64VarP(&beforeDelay, "beforedelay", "b", 2, "ammount of time in seconds before executing process")
+	flag.Int64VarP(&afterDelay, "afterdelay", "a", 0, "ammount of time in seconds after finishing process")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: isocli [OPTIONS] IMAGE COMMAND [command args ...]\n")
 		fmt.Fprintf(os.Stderr, "\nA naive chroot wrapper\n")
@@ -48,9 +50,10 @@ func main() {
 	command := flag.Arg(1)
 	args := flag.Args()[2:]
 
-	// if no root is informed, use a generated temp dir
-	// TODO if image parameter is directory, this tempdir is not going to be used. Check that
-	if root == "" {
+	// if no root is informed and image is not a directory
+	// use a generated temp dir
+	r, err := os.Stat(image)
+	if root == "" && (err != nil || !r.IsDir()) {
 		root, err = ioutil.TempDir("", "isocli")
 		if err != nil {
 			log.Fatal(err)
@@ -63,9 +66,20 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	printMetaInfo("When running the process enter:")
+	printMetaInfo("\t's + enter' to get process state")
+	printMetaInfo("\t'i + enter' to send SIGINT")
+	printMetaInfo("\t'h + enter' to send SIGHUP")
+	printMetaInfo("\t'k + enter' to send SIGKILL")
+	printMetaInfo("\t'u + enter' to send SIGUSR1")
 
 	// launch commands and signals processor
 	go inputProc(chrootProc)
+
+	// delay before execution
+	if beforeDelay > 0 {
+		time.Sleep(time.Duration(beforeDelay) * time.Second)
+	}
 
 	// execute process
 	if err = chrootProc.Exec(command, args...); err != nil {
@@ -74,12 +88,13 @@ func main() {
 
 	// wait for the process to finish
 	if err = chrootProc.Wait(); err != nil {
-		log.Fatal(err)
+		// this error is related to the chrooted process
+		log.Error(err)
 	}
 
 	// delay after exited
-	if delayAfterExited > 0 {
-		time.Sleep(time.Duration(delayAfterExited) * time.Second)
+	if afterDelay > 0 {
+		time.Sleep(time.Duration(afterDelay) * time.Second)
 	}
 
 }
