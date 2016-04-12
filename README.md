@@ -61,6 +61,11 @@ To test a failing process you can change the exit code to a non 0 value
 
 You can ask for status or send signals anytime. If you try to communicate with the process before it's running of after it has finished (use `-a`and `-b` delays), you should receive a message indicating that the process isn't running.
 
+You can use a tarball file instead of a directory
+`sudo ./fsisolatecli -b 5 -a 5 test/simple.tar /loop-linux -- -i 10 -e 2`
+
+Or a URL
+`sudo ./fsisolatecli -b 5 -a 5 https://raw.githubusercontent.com/odacremolbap/fsisolatecli/master/test/simple.tar /loop-linux -- -i 10 -e 2`
 
 ## Darwin
 
@@ -70,4 +75,5 @@ Darwin tests can also use `test\simple`, choosing the darwin compiled `loop` app
 
 `sudo ./fsisolatecli -b 5 -a 5 test/simple /loop-darwin -- -i 10 -e 2`
 
+`sudo ./fsisolatecli -b 5 -a 5 test/simple.tar /loop-darwin -- -i 10 -e 2`
 ...
