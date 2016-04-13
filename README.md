@@ -28,9 +28,9 @@ By default there is a 2 seconds delay before executing the chrooted process.
 
 If `IMAGE` is a directory, `-r` parameter will be ignored, and the chroot process will run in the directory
 
-If `IMAGE`is URL or file, and `-r`is not present, a temp directory will be created to host the chrooted isolation.
+If `IMAGE`is URL or file, and `-r` is not present, a temp directory will be created to host the chrooted isolation.
 
-# Runing
+# Running
 
 Once `fsisolatecli` is running you can get chrooted process infor by writing:
 
