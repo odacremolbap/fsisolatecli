@@ -6,10 +6,10 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/odacremolbap/fsisolate/runtime"
+	"github.com/odacremolbap/fsisolate"
 )
 
-func inputProc(chrootProc *runtime.ChrootedProcess) {
+func inputProc(chrootProc *fsisolate.ChrootedProcess) {
 	for {
 
 		// TODO capture like getch
@@ -31,7 +31,7 @@ func inputProc(chrootProc *runtime.ChrootedProcess) {
 
 			state := chrootProc.GetState()
 
-			if state == runtime.Finished {
+			if state == fsisolate.Finished {
 				exitStatus, e := chrootProc.GetExitStatus()
 				if err != nil {
 					fmt.Println(e)
